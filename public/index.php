@@ -41,10 +41,7 @@ public_header($page);
 <section class="intro">
   <h1><?= e($company['hero']['title']??'Prime Pool Peninsula') ?></h1>
   <div class="intro-details">
-    <div class="intro-actions">
-      <a class="booking-action" href="booking.php">Book an appointment <span class="booking-arrow" aria-hidden="true">↗</span></a>
-      <a class="intro-about" href="index.php?page=about">About the company</a>
-    </div>
+    <a class="text-arrow" href="index.php?page=about">About the company <span aria-hidden="true">↗</span></a>
     <?php if(!empty($company['hero']['description'])): ?><p><?= e($company['hero']['description']) ?></p><?php endif; ?>
   </div>
 </section>
@@ -61,7 +58,7 @@ if (count($feature)<4) $feature=array_slice($projects,0,4);
 <?php endif; ?>
 <section class="end-cta">
   <h2>Let’s talk about what you want to build.</h2>
-  <a class="booking-action" href="booking.php">Book an appointment <span class="booking-arrow" aria-hidden="true">↗</span></a>
+  <a class="text-arrow" href="booking.php">Book an appointment <span aria-hidden="true">↗</span></a>
 </section>
 <?php elseif ($page==='about'): ?>
 <section class="reading editorial-page">
@@ -145,7 +142,7 @@ $filtered=$category ? array_values(array_filter($projects,static fn($work)=>$wor
     <?php if ($email=$company['email']['description']??null): ?><div><dt>Email</dt><dd><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></dd></div><?php endif; ?>
     <?php if ($phone=$company['phone']['description']??null): ?><div><dt>Phone</dt><dd><?= e($phone) ?></dd></div><?php endif; ?>
   </dl>
-  <a class="booking-action" href="booking.php">Book an appointment <span class="booking-arrow" aria-hidden="true">↗</span></a>
+  <a class="text-arrow" href="booking.php">Book an appointment <span aria-hidden="true">↗</span></a>
 </section>
 <?php endif; ?>
 </main>

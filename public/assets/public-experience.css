@@ -11,47 +11,6 @@
   .work-card a:hover img { opacity: .85; transform: scale(1.021); }
 }
 
-.booking-action {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  justify-self: start;
-  gap: .65em;
-  min-height: 46px;
-  padding: 0 16px;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  background: var(--teal);
-  color: #fff;
-  font-size: .95rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color 180ms ease;
-}
-.booking-action:is(:hover,:focus-visible,[aria-current]) {
-  background: var(--ink);
-  color: #fff;
-  text-decoration: none;
-}
-.booking-link.booking-action {
-  justify-self: end;
-  min-height: 44px;
-  padding-inline: 12px;
-  font-size: .84rem;
-}
-.intro-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 20px;
-}
-.intro-about {
-  color: var(--teal);
-  font-weight: 700;
-}
-.end-cta .booking-action { margin-bottom: 3px; }
-
 .archive-toolbar {
   margin: 0 var(--pad) 22px;
   border-block: 1px solid var(--rule);
@@ -254,10 +213,6 @@
 }
 
 @media (max-width:767px) {
-  .booking-link.booking-action { padding-inline: 8px; font-size: .73rem; }
   .archive-categories { gap: 3px 4px; }
   .archive-categories a { min-height: 44px; padding-inline: 9px; }
-}
-@media (max-width:374px) {
-  .booking-link .booking-long { display: none; }
 }

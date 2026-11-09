@@ -80,11 +80,11 @@ img{display:block;max-width:100%}
 }
 .intro-details .text-arrow { margin-top: 0; }
 .text-arrow:hover { text-decoration: underline; text-decoration-thickness: 1px; }
-.text-arrow span,.booking-arrow,.work-arrow {
+.text-arrow span,.booking-link span,.work-arrow {
   display: inline-block;
   transition: transform 220ms var(--ease);
 }
-.text-arrow:is(:hover,:focus-visible) span,.booking-action:is(:hover,:focus-visible) .booking-arrow,
+.text-arrow:is(:hover,:focus-visible) span,.booking-link:is(:hover,:focus-visible) span,
 .work-card a:is(:hover,:focus-visible) .work-arrow,.search-results a:is(:hover,:focus-visible) .work-arrow {
   transform: translate(3px,-3px);
 }
@@ -152,6 +152,7 @@ img{display:block;max-width:100%}
   background: var(--wash);
 }
 .end-cta h2 { max-width: 20ch; }
+.end-cta .text-arrow { margin-bottom: 3px; }
 .public-footer {
   display: grid;
   grid-template-columns: 1.1fr 1fr 1.3fr auto;
@@ -431,6 +432,7 @@ img{display:block;max-width:100%}
  .intro-details{margin-top:16px;gap:8px 22px}
  .intro-details p{max-width:36ch}
  .end-cta{grid-template-columns:1fr}
+ .end-cta .text-arrow{margin-top:0}
  .company-row{grid-template-columns:1fr;gap:8px}
  .service-row{grid-template-columns:1.8rem minmax(0,1fr);gap:8px 10px}
  .service-row>div{grid-column:2}
@@ -474,4 +476,4 @@ img{display:block;max-width:100%}
  .print-sheet header,.print-sheet dt{break-after:avoid}
  .print-sheet .facts{font-size:10pt}
 }
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}.work-card a:hover img,.text-arrow span,.booking-arrow,.work-arrow{transform:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}.work-card a:hover img,.text-arrow span,.booking-link span,.work-arrow{transform:none!important}}
