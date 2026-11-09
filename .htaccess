@@ -1,0 +1,6 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(?:\.git|app|database|scripts|tests|docs|storage)(?:/|$) - [F,NC,L]
+<FilesMatch "^(config\.local\.php|\.gitignore)$">
+Require all denied
+</FilesMatch>
