@@ -87,7 +87,87 @@ img{display:block;max-width:100%}
 .admin-main{max-width:1360px;margin:auto;padding:38px var(--pad) 80px}
 .admin-main h1{font-size:clamp(2rem,5vw,3.5rem)}
 .admin-main h2{font-size:1.35rem;font-weight:700;letter-spacing:-.03em}
-.admin-login{max-width:490px}
+.admin-auth {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--paper);
+}
+.admin-auth .admin-access {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 40px max(var(--pad), 24px) clamp(56px, 9vh, 88px);
+}
+.admin-login {
+  width: min(100%, 400px);
+}
+.admin-login::before {
+  display: block;
+  width: 40px;
+  height: 2px;
+  margin-bottom: 20px;
+  background: var(--blue);
+  content: "";
+}
+.admin-login h1 {
+  margin-bottom: 10px;
+  font-size: clamp(2.35rem, 5vw, 3.25rem);
+  line-height: 1.04;
+  letter-spacing: -.04em;
+  text-wrap: balance;
+}
+.access-intro {
+  margin-bottom: 28px;
+  color: var(--slate);
+}
+.admin-login .stack { gap: 16px; }
+.admin-login .field { gap: 7px; margin-bottom: 0; }
+.admin-login .form-control {
+  min-height: 48px;
+  border-color: #8398a7;
+  border-radius: 4px;
+  color: var(--ink);
+}
+.admin-login .form-control:focus {
+  border-color: var(--teal);
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+.admin-login .btn {
+  min-height: 48px;
+  margin-top: 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+.access-help {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  color: var(--teal);
+  font-size: .9rem;
+}
+.access-help a {
+  display: inline-block;
+  padding-block: 6px;
+  text-decoration-color: #829cad;
+}
+.access-help a:hover { text-decoration-color: currentColor; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-login:not(:focus-within) {
+    animation: staff-entry 360ms cubic-bezier(.22, 1, .36, 1);
+  }
+}
+@keyframes staff-entry {
+  from { opacity: .6; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .panel,.metric{background:#fff;padding:18px;border:1px solid var(--rule);min-width:0;overflow-wrap:anywhere}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;margin:22px 0}
 .metric strong{display:block;font-size:2.15rem}

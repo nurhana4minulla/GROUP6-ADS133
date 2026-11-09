@@ -85,7 +85,8 @@ if ($tab==='print' && $user) {
     }
     $tab='requests';
 }
-page_start($tab==='reset'?'Reset password':($user?($tabs[$tab]??'Request details'):'Staff sign-in'),'admin');
+$isAccessPage = $tab === 'reset' || !$user;
+page_start($tab==='reset'?'Reset password':($user?($tabs[$tab]??'Request details'):'Staff sign-in'),$isAccessPage?'admin admin-auth':'admin');
 ?>
 <header class="admin-header">
   <a class="wordmark" href="<?= $user?'admin.php':'index.php' ?>"><img src="assets/brand.png" width="40" height="40" alt=""> Prime Pool / Operations</a>
@@ -98,22 +99,25 @@ page_start($tab==='reset'?'Reset password':($user?($tabs[$tab]??'Request details
   <form method="post" action="admin.php"><?= csrf_input() ?><button class="btn btn-sm btn-outline-secondary" name="action" value="logout">Sign out</button></form>
   <?php else: ?><a href="index.php">Company website ↗</a><?php endif; ?>
 </header>
-<main id="main" class="admin-main">
-<?php notice($error); ?>
-<?php if ($tab==='reset' || !$user): ?>
-  <section class="panel admin-login">
+<main id="main" class="admin-main<?= $isAccessPage?' admin-access':'' ?>">
+<?php if ($isAccessPage): ?>
+  <section class="admin-login" aria-labelledby="access-heading">
   <?php if ($tab==='reset'): ?>
-    <p class="eyebrow">Staff access</p><h1>Reset password</h1>
-    <p>Enter the one-time code issued by your administrator and choose a new password.</p>
-    <?php form_start('reset'); input('One-time code','token','','text',true,64); input('New password (12–72 characters)','password','','password',true,72); button('Update password'); ?></form>
-    <a class="mt-3 d-inline-block" href="admin.php">Back to sign-in</a>
+    <h1 id="access-heading">Reset password</h1>
+    <p class="access-intro">Enter the one-time code from your administrator and choose a new password.</p>
+    <?php notice($error); ?>
+    <?php form_start('reset'); input('One-time code','token','','text',true,64,'one-time-code'); input('New password (12–72 characters)','password','','password',true,72,'new-password'); button('Update password'); ?></form>
+    <div class="access-help"><a href="admin.php">Back to sign-in</a></div>
   <?php else: ?>
-    <p class="eyebrow">Staff access</p><h1>Sign in</h1>
-    <?php form_start('login'); input('Email','email',$_POST['email']??'','email',true,254); input('Password','password','','password',true,72); button('Sign in'); ?></form>
-    <a class="mt-3 d-inline-block" href="admin.php?tab=reset">Use a password reset code</a>
+    <h1 id="access-heading">Staff sign-in</h1>
+    <p class="access-intro">Manage Prime Pool appointments and projects.</p>
+    <?php notice($error); ?>
+    <?php form_start('login'); input('Work email','email',$_POST['email']??'','email',true,254,'username'); input('Password','password','','password',true,72,'current-password'); button('Sign in'); ?></form>
+    <div class="access-help"><a href="admin.php?tab=reset">Use a password reset code</a></div>
   <?php endif; ?>
   </section>
 <?php else: ?>
+  <?php notice($error); ?>
   <?php try {
       match($tab) {
           'dashboard'=>dashboard(),

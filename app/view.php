@@ -15,8 +15,8 @@ function notice(?string $error=null): void {
         echo '<div class="alert alert-success" role="status">'.e($notice).'</div>';
     }
 }
-function input(string $label,string $name,mixed $value='',string $type='text',bool $required=false,int $max=160): void {
-    echo '<label class="field"><span>'.e($label).'</span><input class="form-control" type="'.e($type).'" name="'.e($name).'" value="'.e($value).'" maxlength="'.$max.'"'.($required?' required':'').'></label>';
+function input(string $label,string $name,mixed $value='',string $type='text',bool $required=false,int $max=160,string $autocomplete=''): void {
+    echo '<label class="field"><span>'.e($label).'</span><input class="form-control" type="'.e($type).'" name="'.e($name).'" value="'.e($value).'" maxlength="'.$max.'"'.($autocomplete!==''?' autocomplete="'.e($autocomplete).'"':'').($required?' required':'').'></label>';
 }
 function select_field(string $label,string $name,array $values,mixed $value='',bool $required=false): void {
     echo '<label class="field"><span>'.e($label).'</span><select class="form-select" name="'.e($name).'"'.($required?' required':'').'><option value="">Choose</option>';
