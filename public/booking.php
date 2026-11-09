@@ -28,12 +28,12 @@ page_start('Book an appointment');
 public_header('booking');
 ?>
 <main id="main" class="reading booking">
-  <p class="eyebrow">Consultation / Client request</p>
+  <p class="page-context">In-person consultation · Zamboanga City</p>
   <h1>Book an appointment</h1>
   <?php notice($error); ?>
   <?php if ($confirmation): ?>
     <section class="confirmation" role="status">
-      <p class="eyebrow">Request received</p><h2><?= e($confirmation['form_number']) ?></h2>
+      <p class="page-context">Request received</p><h2><?= e($confirmation['form_number']) ?></h2>
       <p>Requested appointment: <strong><?= e(human_date($confirmation['starts_at'])) ?> PHT</strong></p>
       <p>Received <?= e(human_date($confirmation['received_at'])) ?> PHT. Keep your form number. Our team will review your request and contact you once approved.</p>
       <a href="index.php">Return to the company website ↗</a>
@@ -46,7 +46,7 @@ public_header('booking');
     <?= csrf_input() ?>
     <div class="honeypot" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
     <?php $dates=[]; foreach($slots as $slot) $dates[substr($slot['starts_at'],0,10)][]=$slot; ?>
-    <fieldset class="form-section"><legend>01 / Appointment time</legend>
+    <fieldset class="form-section"><legend><span class="step-number" aria-hidden="true">01</span> Appointment time</legend>
       <p>Open appointments · Philippine time</p>
       <div class="slot-list">
       <?php foreach($dates as $day=>$times): ?>
@@ -58,7 +58,7 @@ public_header('booking');
       <?php endforeach; ?>
       </div>
     </fieldset>
-    <fieldset class="form-section"><legend>02 / Client information</legend><div class="form-grid">
+    <fieldset class="form-section"><legend><span class="step-number" aria-hidden="true">02</span> Client information</legend><div class="form-grid">
       <?php select_field('I’m booking as','client_kind',['individual'=>'An individual','company'=>'A company'],$data['client_kind']??'individual',true);
       input('Client name or company','client_name',$data['client_name']??'','text',true);
       echo '<div data-condition="client_kind" data-equals="company">';
@@ -70,7 +70,7 @@ public_header('booking');
       input('Email (required if Email is selected)','email',$data['email']??'','email',false,254);
       input('Project site city or area','site_area',$data['site_area']??'','text',true); ?>
     </div></fieldset>
-    <fieldset class="form-section"><legend>03 / Project information</legend><div class="form-grid">
+    <fieldset class="form-section"><legend><span class="step-number" aria-hidden="true">03</span> Project information</legend><div class="form-grid">
       <?php select_field('Project type','project_type',TYPES,$data['project_type']??'',true);
       other_field('project_other','project_type',$data);
       select_field('Nature of request','nature',NATURE,$data['nature']??'',true);
@@ -78,7 +78,7 @@ public_header('booking');
       input('Project name (optional)','project_name',$data['project_name']??'','text',false,200); ?>
     </div><?php textarea('Tell us about the project (optional)','notes',$data['notes']??''); ?></fieldset>
     <details class="form-section" <?= array_intersect(array_keys($data),['pool_type','features','facilities','shape']) && $error?'open':'' ?>>
-      <summary>04 / Optional pool and site details</summary>
+      <summary><span class="step-number" aria-hidden="true">04</span> Optional pool and site details</summary>
       <div class="form-grid">
         <?php select_field('Pool type','pool_type',POOL_TYPES,$data['pool_type']??''); other_field('pool_other','pool_type',$data);
         select_field('Pool shape','shape',SHAPES,$data['shape']??''); other_field('shape_other','shape',$data);

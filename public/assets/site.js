@@ -53,7 +53,10 @@ if (archiveFilter) {
         const link = document.createElement('a');
         link.href = 'index.php?page=project&id=' + encodeURIComponent(work.id);
         const image = work.images[0];
+        const media = document.createElement('div');
+        media.className = 'work-media';
         const visual = document.createElement(image ? 'img' : 'div');
+        media.append(visual);
         if (image) {
             visual.src = image.path.startsWith('assets/') ? image.path : 'media.php?id=' + encodeURIComponent(image.id);
             visual.alt = image.alt;
@@ -69,11 +72,13 @@ if (archiveFilter) {
         const location = document.createElement('p');
         location.textContent = work.location ?? '';
         const arrow = document.createElement('span');
+        arrow.className = 'work-arrow';
         arrow.setAttribute('aria-hidden', 'true');
         arrow.textContent = '↗';
-        info.append(title, location);
+        info.append(title);
+        if (work.location) info.append(location);
         caption.append(info, arrow);
-        link.append(visual, caption);
+        link.append(media, caption);
         card.append(link);
         return card;
     };
@@ -88,6 +93,9 @@ if (archiveFilter) {
             }
             const visible = category ? entries.filter((item) => item.category === category) : entries;
             grid.replaceChildren(...visible.map(renderCard));
+            if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches && typeof grid.animate === 'function') {
+                grid.animate([{opacity: .72}, {opacity: 1}], {duration: 220, easing: 'ease-out'});
+            }
             count.textContent = visible.length + ' projects';
             const url = new URL(location.href);
             if (category) url.searchParams.set('category', category);

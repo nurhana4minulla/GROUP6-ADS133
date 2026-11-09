@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 function admin_title(string $section,string $title): void {
-    echo '<p class="eyebrow">'.e($section).'</p><h1>'.e($title).'</h1>';
+    echo '<p class="page-context">'.e($section).'</p><h1>'.e($title).'</h1>';
 }
 function dashboard(): void {
     $metrics=[
@@ -13,7 +13,7 @@ function dashboard(): void {
     ];
     admin_title('Operations / Philippine time','Dashboard');
     ?>
-    <div class="metrics"><?php foreach ($metrics as $label=>$n): ?><div class="metric"><strong><?= e($n) ?></strong><?= e($label) ?></div><?php endforeach; ?></div>
+    <dl class="metrics"><?php foreach ($metrics as $label=>$n): ?><div class="metric"><dt><?= e($label) ?></dt><dd><?= e($n) ?></dd></div><?php endforeach; ?></dl>
     <section class="panel"><h2>Next appointments</h2><?php request_table(array_slice(request_list(['period'=>'upcoming','status'=>'approved']),0,8),false); ?></section>
     <?php
 }

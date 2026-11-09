@@ -67,6 +67,8 @@ verify(str_contains($print,'Client Request Form') && str_contains($print,$second
 $cms=['title'=>'Disposable test project','slug'=>'test-'.bin2hex(random_bytes(5)),'description'=>'Fixture','published'=>'0'];
 $record=api('portfolio','POST',$cms,201,'staff')['data']['id'];
 api('portfolio&id='.$record,expect:404);
+$searchPath='index.php?page=search&q='.rawurlencode($cms['title']);
+verify(str_contains(request($searchPath)['html'],'No results for'),'Draft portfolio entry was visible in public search');
 request('admin.php?tab=cms&kind=portfolio&id='.$record,'POST',[
     'action'=>'image','kind'=>'portfolio','id'=>$record,'alt'=>'Fixture photograph',
     'image'=>new CURLFile(dirname(__DIR__).'/public/assets/lapaz-1.webp','image/webp','demo.webp')
@@ -77,6 +79,7 @@ verify(is_file($disk),'Upload was not stored');
 request('media.php?id='.$uploaded['id'],expect:404);
 api('portfolio&id='.$record,'PATCH',['published'=>'1'],profile:'staff');
 api('portfolio&id='.$record);
+verify(str_contains(request($searchPath)['html'],'page=project&amp;id='.$record),'Published portfolio entry was missing from public search');
 request('media.php?id='.$uploaded['id']);
 $batch=request('admin.php?tab=print','POST',['action'=>'print','ids[0]'=>$first['id'],'ids[1]'=>$id],200,'staff',true)['html'];
 verify(substr_count($batch,'class="print-sheet"')===2,'Batch print did not contain both requests');

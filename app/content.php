@@ -10,6 +10,16 @@ function content_list(string $kind, bool $includeHidden=false): array {
     foreach($entries as &$entry) $entry['images']=$groups[$entry['id']]??[];
     return $entries;
 }
+function search_content(string $query): array {
+    $terms=preg_split('/\s+/u',$query,-1,PREG_SPLIT_NO_EMPTY);
+    if (!$terms) return [];
+    // Each word must occur somewhere in the entry, even if the words span different fields.
+    $pattern=static fn(string $term): string => '%'.strtr($term,['!'=>'!!','%'=>'!%','_'=>'!_']).'%';
+    $matches=array_fill(0,count($terms),"CONCAT_WS(' ',title,description,category,location) LIKE ? ESCAPE '!'");
+    return rows("SELECT id,kind,slug,title,description FROM content WHERE published=1 AND ".implode(' AND ',$matches).
+        " ORDER BY (title LIKE ? ESCAPE '!') DESC, sort_order, id LIMIT 41",
+        [...array_map($pattern,$terms),$pattern($query)]);
+}
 function content_entry(string $kind,int $id,bool $includeHidden=false): array {
     $entry=one('SELECT * FROM content WHERE kind=? AND id=?'.($includeHidden?'':' AND published=1'),[$kind,$id]);
     if (!$entry) fail('Content entry not found.',404);
