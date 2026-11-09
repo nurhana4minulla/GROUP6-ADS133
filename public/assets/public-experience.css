@@ -64,9 +64,6 @@
   background: var(--wash);
   color: var(--teal);
 }
-.archive-categories a[aria-current] {
-  box-shadow: inset 0 -2px var(--blue);
-}
 .archive-empty { margin: 0 var(--pad) 44px; }
 
 .project-index {
