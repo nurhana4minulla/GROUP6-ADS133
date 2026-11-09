@@ -41,7 +41,10 @@ public_header($page);
 <section class="intro">
   <h1><?= e($company['hero']['title']??'Prime Pool Peninsula') ?></h1>
   <div class="intro-details">
-    <a class="text-arrow" href="index.php?page=about">About the company <span aria-hidden="true">↗</span></a>
+    <div class="intro-actions">
+      <a class="booking-action" href="booking.php">Book an appointment <span class="booking-arrow" aria-hidden="true">↗</span></a>
+      <a class="intro-about" href="index.php?page=about">About the company</a>
+    </div>
     <?php if(!empty($company['hero']['description'])): ?><p><?= e($company['hero']['description']) ?></p><?php endif; ?>
   </div>
 </section>
@@ -58,7 +61,7 @@ if (count($feature)<4) $feature=array_slice($projects,0,4);
 <?php endif; ?>
 <section class="end-cta">
   <h2>Let’s talk about what you want to build.</h2>
-  <a class="text-arrow" href="booking.php">Book an appointment <span aria-hidden="true">↗</span></a>
+  <a class="booking-action" href="booking.php">Book an appointment <span class="booking-arrow" aria-hidden="true">↗</span></a>
 </section>
 <?php elseif ($page==='about'): ?>
 <section class="reading editorial-page">
@@ -89,22 +92,25 @@ $categories=array_values(array_unique(array_filter(array_column($projects,'categ
 sort($categories);
 $filtered=$category ? array_values(array_filter($projects,static fn($work)=>$work['category']===$category)) : $projects;
 ?>
-<nav class="archive-views" aria-label="Project archive view">
-  <?php foreach(['grid'=>'Grid','index'=>'Index'] as $view=>$label):
-    $href='index.php?'.http_build_query(array_filter(['page'=>'projects','view'=>$view,'category'=>$category])); ?>
-    <a href="<?= e($href) ?>" data-archive-view<?= $archiveView===$view?' aria-current="page"':'' ?>><?= e($label) ?></a>
-  <?php endforeach; ?>
-</nav>
-<form class="archive-filter" action="index.php" method="get"<?= $archiveView==='grid'?' data-archive-filter':'' ?>>
-  <input type="hidden" name="page" value="projects">
-  <input type="hidden" name="view" value="<?= e($archiveView) ?>">
-  <label for="category">Category</label>
-  <select class="form-select" name="category" id="category"><option value="">All projects</option>
-    <?php foreach($categories as $option): ?><option<?= $option===$category?' selected':'' ?>><?= e($option) ?></option><?php endforeach; ?>
-  </select>
-  <button class="btn btn-outline-primary" type="submit">Filter</button>
-  <span class="archive-count" aria-live="polite" data-archive-count><?= count($filtered) ?> projects</span>
-</form>
+<div class="archive-toolbar">
+  <div class="archive-toolbar-top">
+    <p class="archive-count" aria-live="polite" data-archive-count><?= count($filtered) ?> <?= count($filtered)===1?'project':'projects' ?></p>
+    <nav class="archive-views" aria-label="Project archive view">
+      <?php foreach(['grid'=>'Grid','index'=>'Index'] as $view=>$label):
+        $href='index.php?'.http_build_query(array_filter(['page'=>'projects','view'=>$view,'category'=>$category])); ?>
+        <a href="<?= e($href) ?>" data-archive-view<?= $archiveView===$view?' aria-current="page"':'' ?>><?= e($label) ?></a>
+      <?php endforeach; ?>
+    </nav>
+  </div>
+  <nav class="archive-categories" aria-label="Filter projects by category"<?= $archiveView==='grid'?' data-archive-filter':'' ?>>
+    <?php foreach(['',...$categories] as $option):
+      $href='index.php?'.http_build_query(array_filter(['page'=>'projects','view'=>$archiveView,'category'=>$option]));
+    ?>
+      <a href="<?= e($href) ?>" data-category="<?= e($option) ?>"<?= ($category??'')===$option?' aria-current="true"':'' ?>><?= e($option===''?'All projects':$option) ?></a>
+    <?php endforeach; ?>
+  </nav>
+</div>
+<?php if(!$filtered): ?><p class="archive-empty">No projects in this category.</p><?php endif; ?>
 <?php if($archiveView==='index'): ?>
 <ol class="project-index"><?php foreach($filtered as $work) project_index_item($work); ?></ol>
 <?php else: ?>
@@ -139,7 +145,7 @@ $filtered=$category ? array_values(array_filter($projects,static fn($work)=>$wor
     <?php if ($email=$company['email']['description']??null): ?><div><dt>Email</dt><dd><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></dd></div><?php endif; ?>
     <?php if ($phone=$company['phone']['description']??null): ?><div><dt>Phone</dt><dd><?= e($phone) ?></dd></div><?php endif; ?>
   </dl>
-  <a class="text-arrow" href="booking.php">Book an appointment <span aria-hidden="true">↗</span></a>
+  <a class="booking-action" href="booking.php">Book an appointment <span class="booking-arrow" aria-hidden="true">↗</span></a>
 </section>
 <?php endif; ?>
 </main>

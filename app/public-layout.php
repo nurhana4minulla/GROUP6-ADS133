@@ -25,7 +25,7 @@ function public_header(string $page): void {
       <nav class="main-nav" id="main-nav" aria-label="Main navigation">
         <?php foreach ($links as $slug=>$label): ?><a href="index.php?page=<?= e($slug) ?>"<?= $page===$slug?' aria-current="page"':'' ?>><?= e($label) ?></a><?php endforeach; ?>
       </nav>
-      <a class="booking-link" href="booking.php"<?= $page==='booking'?' aria-current="page"':'' ?>>Book an appointment <span aria-hidden="true">↗</span></a>
+      <a class="booking-link booking-action" href="booking.php" aria-label="Book an appointment"<?= $page==='booking'?' aria-current="page"':'' ?>><span class="booking-label">Book<span class="booking-long"> an appointment</span></span><span class="booking-arrow" aria-hidden="true">↗</span></a>
     </header>
     <?php
 }

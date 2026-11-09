@@ -148,7 +148,8 @@ const archiveFilter = document.querySelector('[data-archive-filter]');
 if (archiveFilter) {
     const grid = document.querySelector('[data-archive-grid]');
     const count = document.querySelector('[data-archive-count]');
-    let entries;
+    let portfolio;
+    let selection = 0;
     const renderCard = (work) => {
         const card = document.createElement('article');
         card.className = 'work-card';
@@ -184,15 +185,20 @@ if (archiveFilter) {
         card.append(link);
         return card;
     };
-    archiveFilter.addEventListener('submit', async (event) => {
+    archiveFilter.addEventListener('click', async (event) => {
+        const link = event.target.closest('a[data-category]');
+        if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
         event.preventDefault();
-        const category = archiveFilter.elements.category.value;
+        const request = ++selection;
+        const category = link.dataset.category;
+        const destination = new URL(link.href);
         try {
-            if (!entries) {
-                const response = await fetch('api.php?resource=portfolio');
+            portfolio ??= fetch('api.php?resource=portfolio').then(async (response) => {
                 if (!response.ok) throw new Error('Portfolio unavailable');
-                entries = (await response.json()).data;
-            }
+                return (await response.json()).data;
+            });
+            const entries = await portfolio;
+            if (request !== selection) return;
             const visible = category ? entries.filter((item) => item.category === category) : entries;
             grid.querySelectorAll('.work-card').forEach((card) => projectObserver?.unobserve(card));
             grid.replaceChildren(...visible.map(renderCard));
@@ -200,19 +206,25 @@ if (archiveFilter) {
             if (motionAllowed.matches && typeof grid.animate === 'function') {
                 grid.animate([{opacity: .72}, {opacity: 1}], {duration: 220, easing: 'ease-out'});
             }
-            count.textContent = visible.length + ' projects';
-            const url = new URL(location.href);
-            if (category) url.searchParams.set('category', category);
-            else url.searchParams.delete('category');
-            history.replaceState(null, '', url);
-            for (const link of document.querySelectorAll('[data-archive-view]')) {
-                const target = new URL(link.href);
+            document.querySelector('.archive-empty')?.remove();
+            if (!visible.length) {
+                const empty = document.createElement('p');
+                empty.className = 'archive-empty';
+                empty.textContent = 'No projects in this category.';
+                grid.before(empty);
+            }
+            archiveFilter.querySelector('[aria-current]')?.removeAttribute('aria-current');
+            link.setAttribute('aria-current', 'true');
+            count.textContent = visible.length + (visible.length === 1 ? ' project' : ' projects');
+            history.replaceState(null, '', destination);
+            for (const view of document.querySelectorAll('[data-archive-view]')) {
+                const target = new URL(view.href);
                 if (category) target.searchParams.set('category', category);
                 else target.searchParams.delete('category');
-                link.href = target;
+                view.href = target;
             }
         } catch {
-            HTMLFormElement.prototype.submit.call(archiveFilter);
+            if (request === selection) location.assign(destination);
         }
     });
 }
