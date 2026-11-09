@@ -21,7 +21,7 @@ function public_header(string $page): void {
       <a class="wordmark" href="index.php" aria-label="Prime Pool Peninsula home">
         <img src="assets/brand.png" width="45" height="45" alt=""><span>Prime Pool<br>Peninsula</span>
       </a>
-      <button class="menu-toggle" type="button" aria-controls="main-nav" aria-expanded="false" hidden>Menu <span aria-hidden="true">+</span></button>
+      <button class="menu-toggle" type="button" aria-controls="main-nav" aria-expanded="false" hidden><span class="menu-label">Menu</span> <span class="menu-symbol" aria-hidden="true">+</span></button>
       <nav class="main-nav" id="main-nav" aria-label="Main navigation">
         <?php foreach ($links as $slug=>$label): ?><a href="index.php?page=<?= e($slug) ?>"<?= $page===$slug?' aria-current="page"':'' ?>><?= e($label) ?></a><?php endforeach; ?>
       </nav>
@@ -52,5 +52,22 @@ function work_card(array $work, bool $priority=false): void {
         <div class="work-caption"><div><h2><?= e($work['title']) ?></h2><?php if($work['location']): ?><p><?= e($work['location']) ?></p><?php endif; ?></div><span class="work-arrow" aria-hidden="true">↗</span></div>
       </a>
     </article>
+    <?php
+}
+
+
+function project_index_item(array $work): void {
+    $image=$work['images'][0]??null;
+    ?>
+    <li>
+      <a href="index.php?page=project&amp;id=<?= (int)$work['id'] ?>">
+        <span class="index-title"><?= e($work['title']) ?></span>
+        <span class="index-location"><?= e($work['location']) ?></span>
+        <?php if($image): ?>
+          <img src="<?= e(image_url($image)) ?>" alt="" width="120" height="72" loading="lazy">
+        <?php endif; ?>
+        <span class="work-arrow" aria-hidden="true">↗</span>
+      </a>
+    </li>
     <?php
 }

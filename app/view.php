@@ -4,7 +4,8 @@ declare(strict_types=1);
 function page_start(string $title,string $area='public'): void {
     $body=e($area);
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>'.e($title).' | Prime Pool Peninsula</title><link rel="icon" href="assets/brand.png"><link rel="stylesheet" href="assets/bootstrap.min.css"><link rel="stylesheet" href="assets/site.css"><script src="assets/site.js" defer></script></head><body class="'.$body.'">';
+    $publicStyle=$area==='public'?'<link rel="stylesheet" href="assets/public-experience.css">':'';
+    echo '<title>'.e($title).' | Prime Pool Peninsula</title><link rel="icon" href="assets/brand.png"><link rel="stylesheet" href="assets/bootstrap.min.css"><link rel="stylesheet" href="assets/site.css">'.$publicStyle.'<script src="assets/site.js" defer></script></head><body class="'.$body.'">';
     echo '<a class="skip-link" href="#main">Skip to content</a>';
 }
 function page_end(): void { echo '</body></html>'; }

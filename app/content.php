@@ -10,15 +10,34 @@ function content_list(string $kind, bool $includeHidden=false): array {
     foreach($entries as &$entry) $entry['images']=$groups[$entry['id']]??[];
     return $entries;
 }
-function search_content(string $query): array {
+function search_content(string $query, ?string $kind=null): array {
     $terms=preg_split('/\s+/u',$query,-1,PREG_SPLIT_NO_EMPTY);
-    if (!$terms) return [];
-    // Each word must occur somewhere in the entry, even if the words span different fields.
-    $pattern=static fn(string $term): string => '%'.strtr($term,['!'=>'!!','%'=>'!%','_'=>'!_']).'%';
-    $matches=array_fill(0,count($terms),"CONCAT_WS(' ',title,description,category,location) LIKE ? ESCAPE '!'");
-    return rows("SELECT id,kind,slug,title,description FROM content WHERE published=1 AND ".implode(' AND ',$matches).
-        " ORDER BY (title LIKE ? ESCAPE '!') DESC, sort_order, id LIMIT 41",
-        [...array_map($pattern,$terms),$pattern($query)]);
+    $pattern=static fn(string $term): string => strtr($term,['!'=>'!!','%'=>'!%','_'=>'!_']);
+    $where=['c.published=1'];
+    $params=[];
+    if ($kind!==null) {
+        $where[]='c.kind=?';
+        $params[]=$kind;
+    }
+    foreach ($terms as $term) {
+        $where[]="CONCAT_WS(' ',c.title,c.description,c.category,c.location) LIKE ? ESCAPE '!'";
+        $params[]='%'.$pattern($term).'%';
+    }
+    $rank='';
+    if ($terms) {
+        $rank="CASE WHEN c.title=? THEN 0 WHEN c.title LIKE ? ESCAPE '!' THEN 1
+            WHEN c.title LIKE ? ESCAPE '!' THEN 2 ELSE 3 END, ";
+        array_push($params,$query,$pattern($query).'%','%'.$pattern($query).'%');
+    }
+    return rows("SELECT c.id,c.kind,c.slug,c.title,c.description,c.category,c.location,i.id AS image_id,i.path AS image_path
+        FROM content c LEFT JOIN content_images i ON i.id=(
+            SELECT id FROM content_images WHERE content_id=c.id ORDER BY sort_order,id LIMIT 1
+        ) WHERE ".implode(' AND ',$where)." ORDER BY ".$rank."c.sort_order,c.id LIMIT 41",$params);
+}
+function next_portfolio(array $entry): ?array {
+    return one("SELECT id,title,location FROM content WHERE kind='portfolio' AND published=1 AND id<>?
+        ORDER BY (sort_order < ? OR (sort_order=? AND id<?)),sort_order,id LIMIT 1",
+        [$entry['id'],$entry['sort_order'],$entry['sort_order'],$entry['id']]);
 }
 function content_entry(string $kind,int $id,bool $includeHidden=false): array {
     $entry=one('SELECT * FROM content WHERE kind=? AND id=?'.($includeHidden?'':' AND published=1'),[$kind,$id]);

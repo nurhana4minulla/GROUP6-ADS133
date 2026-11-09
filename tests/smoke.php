@@ -10,4 +10,8 @@ $portfolio = json_decode((string) @file_get_contents("$base/api.php?resource=por
 expect(count($portfolio['data'] ?? []) >= 10, 'published portfolio API uses seeded data');
 $admin = @file_get_contents("$base/api.php?resource=requests");
 expect($admin === false && str_contains($http_response_header[0] ?? '', '401'), 'private API requires login');
-echo "Public home, portfolio API, and admin access checks passed.\n";
+$search = @file_get_contents("$base/index.php?page=search&q=maintenance&type=service&fragment=results");
+expect(is_string($search) && str_contains($search, 'Pool maintenance') && !str_contains($search, '<html'), 'filtered live search renders an HTML fragment');
+$projects = @file_get_contents("$base/index.php?page=search&q=La%20Paz&type=portfolio");
+expect(is_string($projects) && str_contains($projects, 'search-hit-illustrated') && str_contains($projects, 'La Paz Infinity Pool'), 'published project search includes thumbnails');
+echo "Public home, portfolio API, search, and admin access checks passed.\n";

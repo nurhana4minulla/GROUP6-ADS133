@@ -3,17 +3,34 @@ declare(strict_types=1);
 require dirname(__DIR__).'/app/bootstrap.php';
 require ROOT.'/app/content.php';
 require ROOT.'/app/view.php';
-$page='home'; $error=null; $company=[]; $projects=[]; $services=[]; $project=null; $category=null; $query=null; $results=[];
+$page='home'; $error=null; $company=[]; $projects=[]; $services=[]; $project=null; $category=null; $query=null; $results=[]; $searchType=null; $nextProject=null; $archiveView='grid';
 try {
     $page=choice($_GET,'page',['home','about','services','projects','project','contact','search'],false)??'home';
     $company=array_column(content_list('company'),null,'slug');
     if (in_array($page,['home','projects'],true)) $projects=content_list('portfolio');
     if ($page==='services') $services=content_list('service');
-    if ($page==='projects') $category=field($_GET,'category',100);
-    if ($page==='search' && ($query=field($_GET,'q',100))!==null) $results=search_content($query);
-    if ($page==='project') $project=content_entry('portfolio',id($_GET['id']??null));
+    if ($page==='projects') {
+        $category=field($_GET,'category',100);
+        $archiveView=choice($_GET,'view',['grid','index'],false)??'grid';
+    }
+    if ($page==='search') {
+        $query=field($_GET,'q',100);
+        $searchType=choice($_GET,'type',CONTENT_KINDS,false);
+        if ($query!==null || $searchType!==null) $results=search_content($query??'',$searchType);
+    }
+    if ($page==='project') {
+        $project=content_entry('portfolio',id($_GET['id']??null));
+        $nextProject=next_portfolio($project);
+    }
 } catch(Throwable $e) { $error=safe_error($e); http_response_code(status_code($e)); }
 require ROOT.'/app/public-layout.php';
+if ($page==='search') {
+    require ROOT.'/app/public-search.php';
+    if (($_GET['fragment']??null)==='results') {
+        if (!$error) search_results($query,$searchType,$results);
+        exit;
+    }
+}
 page_start($project['title']??($page==='home'?'Pool design and construction':ucfirst($page)));
 public_header($page);
 ?>
@@ -72,8 +89,15 @@ $categories=array_values(array_unique(array_filter(array_column($projects,'categ
 sort($categories);
 $filtered=$category ? array_values(array_filter($projects,static fn($work)=>$work['category']===$category)) : $projects;
 ?>
-<form class="archive-filter" action="index.php" method="get" data-archive-filter>
+<nav class="archive-views" aria-label="Project archive view">
+  <?php foreach(['grid'=>'Grid','index'=>'Index'] as $view=>$label):
+    $href='index.php?'.http_build_query(array_filter(['page'=>'projects','view'=>$view,'category'=>$category])); ?>
+    <a href="<?= e($href) ?>" data-archive-view<?= $archiveView===$view?' aria-current="page"':'' ?>><?= e($label) ?></a>
+  <?php endforeach; ?>
+</nav>
+<form class="archive-filter" action="index.php" method="get"<?= $archiveView==='grid'?' data-archive-filter':'' ?>>
   <input type="hidden" name="page" value="projects">
+  <input type="hidden" name="view" value="<?= e($archiveView) ?>">
   <label for="category">Category</label>
   <select class="form-select" name="category" id="category"><option value="">All projects</option>
     <?php foreach($categories as $option): ?><option<?= $option===$category?' selected':'' ?>><?= e($option) ?></option><?php endforeach; ?>
@@ -81,7 +105,11 @@ $filtered=$category ? array_values(array_filter($projects,static fn($work)=>$wor
   <button class="btn btn-outline-primary" type="submit">Filter</button>
   <span class="archive-count" aria-live="polite" data-archive-count><?= count($filtered) ?> projects</span>
 </form>
+<?php if($archiveView==='index'): ?>
+<ol class="project-index"><?php foreach($filtered as $work) project_index_item($work); ?></ol>
+<?php else: ?>
 <div class="work-grid archive-grid" data-archive-grid><?php foreach($filtered as $work) work_card($work); ?></div>
+<?php endif; ?>
 <?php elseif ($page==='project' && $project): ?>
 <section class="reading archive-intro">
   <a class="back" href="index.php?page=projects">← Project archive</a>
@@ -93,37 +121,15 @@ $filtered=$category ? array_values(array_filter($projects,static fn($work)=>$wor
 <?php if($project['images']): ?>
 <div class="project-images"><?php foreach($project['images'] as $i=>$image): ?><img src="<?= e(image_url($image)) ?>" alt="<?= e($image['alt']) ?>"<?= $i===0?' fetchpriority="high"':' loading="lazy"' ?>><?php endforeach; ?></div>
 <?php endif; ?>
+<?php if($nextProject): ?>
+<a class="next-project" href="index.php?page=project&amp;id=<?= (int)$nextProject['id'] ?>">
+  <span>Next project</span>
+  <strong><?= e($nextProject['title']) ?></strong>
+  <span class="work-arrow" aria-hidden="true">↗</span>
+</a>
+<?php endif; ?>
 <?php elseif ($page==='search'): ?>
-<section class="reading search-page">
-  <h1>Search</h1>
-  <form class="site-search" action="index.php" method="get" role="search" aria-label="Search the Prime Pool website">
-    <input type="hidden" name="page" value="search">
-    <label for="site-query">Projects, services or company information</label>
-    <div class="search-controls">
-      <input type="search" class="form-control" id="site-query" name="q" maxlength="100" value="<?= e($query) ?>" required>
-      <button class="btn btn-primary" type="submit">Search</button>
-    </div>
-  </form>
-  <?php if($query!==null): ?>
-    <?php if(!$results): ?>
-      <p class="search-status">No results for <strong><?= e($query) ?></strong>. Try a project name, a place, or a service.</p>
-    <?php else: ?>
-      <p class="search-status"><?= count($results)>40?'Showing the first 40 results':count($results).' '.(count($results)===1?'result':'results') ?> for <strong><?= e($query) ?></strong></p>
-      <ol class="search-results">
-      <?php foreach(array_slice($results,0,40) as $result): ?>
-        <li>
-          <a href="<?= e(search_result_url($result)) ?>">
-            <span class="page-context"><?= e(['company'=>'Company','service'=>'Service','portfolio'=>'Project'][$result['kind']]) ?></span>
-            <h2><?= e($result['title']) ?></h2>
-            <span class="work-arrow" aria-hidden="true">↗</span>
-            <p><?= e(mb_strimwidth(preg_replace('/\s+/u',' ',$result['description']),0,155,'…')) ?></p>
-          </a>
-        </li>
-      <?php endforeach; ?>
-      </ol>
-    <?php endif; ?>
-  <?php endif; ?>
-</section>
+<?php search_page($query,$searchType,$results); ?>
 <?php elseif ($page==='contact'): ?>
 <section class="reading editorial-page">
   <p class="page-context">Zamboanga City</p>

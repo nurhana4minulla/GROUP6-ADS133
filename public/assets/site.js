@@ -7,9 +7,13 @@ if (menu && nav) {
     const setMenu = (open) => {
         menu.setAttribute('aria-expanded', String(open));
         nav.classList.toggle('is-open', open);
-        menu.querySelector('span').textContent = open ? '−' : '+';
+        menu.querySelector('.menu-label').textContent = open ? 'Close' : 'Menu';
+        menu.querySelector('.menu-symbol').textContent = open ? '−' : '+';
     };
     menu.addEventListener('click', () => setMenu(menu.getAttribute('aria-expanded') !== 'true'));
+    document.addEventListener('click', (event) => {
+        if (!menu.closest('.mast').contains(event.target)) setMenu(false);
+    });
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && menu.getAttribute('aria-expanded') === 'true') {
             setMenu(false);
@@ -42,6 +46,104 @@ for (const form of document.forms) {
     }, true);
     update();
 }
+const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)');
+const publicMain = document.querySelector('.public #main');
+if (publicMain) {
+    let leaving = false;
+    window.addEventListener('pageshow', () => {
+        leaving = false;
+        publicMain.classList.remove('is-leaving');
+    });
+    document.addEventListener('click', (event) => {
+        if (!motionAllowed.matches || event.defaultPrevented || event.button !== 0 ||
+            event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        const link = event.target.closest('a[href]');
+        if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
+        const destination = new URL(link.href);
+        const filename = destination.pathname.split('/').pop();
+        if (destination.origin !== location.origin || !['index.php', 'booking.php'].includes(filename) ||
+            (destination.pathname === location.pathname && destination.search === location.search)) return;
+        event.preventDefault();
+        if (leaving) return;
+        leaving = true;
+        publicMain.classList.add('is-leaving');
+        // The short fade leaves the header in place and uses ordinary link navigation.
+        setTimeout(() => location.assign(destination), 100);
+    });
+}
+const projectObserver = 'IntersectionObserver' in window ? new IntersectionObserver((entries, observer) => {
+    for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        if (motionAllowed.matches && !entry.target.matches(':focus-within')) {
+            entry.target.classList.add('is-entering');
+            entry.target.addEventListener('animationend', () => entry.target.classList.remove('is-entering'), {once: true});
+        }
+    }
+}, {threshold: .12}) : null;
+const observeProjects = (container) => {
+    if (!projectObserver || !motionAllowed.matches) return;
+    container.querySelectorAll('.work-card').forEach((card) => projectObserver.observe(card));
+};
+observeProjects(document);
+
+const searchForm = document.querySelector('[data-live-search]');
+if (searchForm) {
+    const query = searchForm.elements.q;
+    const results = document.querySelector('#site-search-results');
+    const announcement = document.querySelector('[data-search-announcement]');
+    let timer;
+    let pending;
+    const refreshResults = async (submit = false) => {
+        pending?.abort();
+        const request = new AbortController();
+        pending = request;
+        const url = new URL(searchForm.action);
+        url.search = new URLSearchParams(new FormData(searchForm));
+        if (!query.value.trim()) url.searchParams.delete('q');
+        if (!url.searchParams.get('type')) url.searchParams.delete('type');
+        const fragment = new URL(url);
+        fragment.searchParams.set('fragment', 'results');
+        results.setAttribute('aria-busy', 'true');
+        try {
+            const response = await fetch(fragment, {signal: request.signal});
+            if (!response.ok) throw new Error('Search unavailable');
+            const html = await response.text();
+            if (request.signal.aborted) return;
+            const template = document.createElement('template');
+            template.innerHTML = html;
+            results.replaceChildren(template.content);
+            announcement.classList.add('visually-hidden');
+            announcement.textContent = results.querySelector('[data-result-summary]')?.textContent ?? 'Search suggestions available.';
+            history.replaceState(null, '', url);
+        } catch (error) {
+            if (request.signal.aborted) return;
+            if (submit) HTMLFormElement.prototype.submit.call(searchForm);
+            else {
+                announcement.classList.remove('visually-hidden');
+                announcement.textContent = 'Live results are unavailable. Press Search to try again.';
+            }
+        } finally {
+            if (pending === request) results.removeAttribute('aria-busy');
+        }
+    };
+    query.addEventListener('input', () => {
+        clearTimeout(timer);
+        pending?.abort();
+        timer = setTimeout(refreshResults, 230);
+    });
+    searchForm.addEventListener('change', (event) => {
+        if (event.target.name !== 'type') return;
+        clearTimeout(timer);
+        refreshResults();
+    });
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        clearTimeout(timer);
+        refreshResults(true);
+    });
+}
+
 const archiveFilter = document.querySelector('[data-archive-filter]');
 if (archiveFilter) {
     const grid = document.querySelector('[data-archive-grid]');
@@ -92,8 +194,10 @@ if (archiveFilter) {
                 entries = (await response.json()).data;
             }
             const visible = category ? entries.filter((item) => item.category === category) : entries;
+            grid.querySelectorAll('.work-card').forEach((card) => projectObserver?.unobserve(card));
             grid.replaceChildren(...visible.map(renderCard));
-            if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches && typeof grid.animate === 'function') {
+            observeProjects(grid);
+            if (motionAllowed.matches && typeof grid.animate === 'function') {
                 grid.animate([{opacity: .72}, {opacity: 1}], {duration: 220, easing: 'ease-out'});
             }
             count.textContent = visible.length + ' projects';
@@ -101,6 +205,12 @@ if (archiveFilter) {
             if (category) url.searchParams.set('category', category);
             else url.searchParams.delete('category');
             history.replaceState(null, '', url);
+            for (const link of document.querySelectorAll('[data-archive-view]')) {
+                const target = new URL(link.href);
+                if (category) target.searchParams.set('category', category);
+                else target.searchParams.delete('category');
+                link.href = target;
+            }
         } catch {
             HTMLFormElement.prototype.submit.call(archiveFilter);
         }
