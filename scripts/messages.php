@@ -4,6 +4,8 @@ if (PHP_SAPI !== 'cli') exit;
 require dirname(__DIR__).'/app/bootstrap.php';
 $c=config();
 if (!in_array($c['message_mode'],['demo','live'],true)) throw new RuntimeException('Invalid message mode.');
+if ($c['message_mode']==='live' && one("SELECT name FROM setup_state WHERE name='demo-accounts'"))
+    throw new RuntimeException('Databases with demo accounts can only simulate delivery.');
 if ($c['message_mode']==='live' && (!str_starts_with($c['message_gateway'],'https://') || $c['message_token']===''))
     throw new RuntimeException('Live mode needs an HTTPS gateway and bearer token.');
 run("UPDATE messages SET status='cancelled',processed_at=NOW() WHERE status='queued' AND expires_at<=NOW()");

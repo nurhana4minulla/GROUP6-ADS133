@@ -22,7 +22,8 @@ function db(): PDO {
     return $pdo ??= new PDO("mysql:host={$c['host']};port={$c['port']};dbname={$c['database']};charset=utf8mb4",
         $c['username'], $c['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+08:00'"]);
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION time_zone = '+08:00', foreign_key_checks = 1,
+            sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_TRANS_TABLES')"]);
 }
 
 function run(string $sql, array $params = []): PDOStatement {
@@ -78,7 +79,10 @@ if (PHP_SAPI !== 'cli') {
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
     ini_set('session.use_strict_mode','1');
-    session_name('prime_pool_session');
+    // Browser cookies are shared across localhost ports. Keep each database's sessions separate.
+    $sessionConfig=config();
+    $sessionScope=implode(':',[$sessionConfig['host'],$sessionConfig['port'],$sessionConfig['database']]);
+    session_name('prime_pool_'.substr(hash('sha256',$sessionScope),0,20));
     session_set_cookie_params(['httponly'=>true,'secure'=>!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off','samesite'=>'Lax']);
     session_start();
 }

@@ -174,7 +174,17 @@ function record_meeting(array $user,int $id,array $data): void {
         if (!$locked || $locked['status'] !== 'approved') fail('Approve the appointment before recording its meeting.',409);
         $request = request_detail($id);
         if ($request['project'] && $outcome==='inquiry') fail('This request already has a project.',409);
-        if ($visit && $visit !== ($request['meeting']['visit'] ?? null) && $visit<=date('Y-m-d H:i:s')) fail('Choose a future site visit time.');
+        $previousVisit=$request['meeting']['visit']??null;
+        if ($previousVisit && $visit!==$previousVisit) {
+            // Hold the old reminder row until this edit commits, or wait for a send already in flight.
+            $reminder=one("SELECT status FROM messages WHERE request_id=? AND event='site_reminder'
+                AND occurrence=? FOR UPDATE",[$id,$previousVisit]);
+            if (($reminder['status']??null)==='sending') fail('The site visit reminder is being sent. Try again shortly.',409);
+        }
+        if ($visit && $visit!==$previousVisit) {
+            if ($visit<=date('Y-m-d H:i:s')) fail('Choose a future site visit time.');
+            if ($visit<=$request['starts_at']) fail('Choose a site visit time after the appointment.');
+        }
         run('INSERT INTO meetings(request_id,outcome,accessibility,full_address,notes) VALUES (?,?,?,?,?)
             ON DUPLICATE KEY UPDATE outcome=VALUES(outcome),accessibility=VALUES(accessibility),full_address=VALUES(full_address),notes=VALUES(notes)',[$id,$outcome,$access,$address,$notes]);
         if ($facilities!==null) {
