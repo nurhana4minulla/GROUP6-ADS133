@@ -68,7 +68,7 @@ function date_input(array $data, string $key, bool $time = false, bool $required
     return $date->format($time ? 'Y-m-d H:i:s' : 'Y-m-d');
 }
 function human_date(string $date): string { return (new DateTimeImmutable($date))->format('M j, Y · g:i A'); }
-function form_no(array $request): string { return sprintf('PSA-%s-%04d',substr($request['received_at'],0,4),$request['id']); }
+function form_no(array $request): string { return sprintf('CRF-%s-%04d',substr($request['received_at'],0,4),$request['id']); }
 function redirect(string $to): never { header('Location: '.$to, true, 303); exit; }
 function method(): string { return $_SERVER['REQUEST_METHOD'] ?? 'GET'; }
 function flash(string $message): void { $_SESSION['notice'] = $message; }

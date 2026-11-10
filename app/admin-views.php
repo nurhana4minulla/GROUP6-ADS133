@@ -173,7 +173,7 @@ function projects_screen(): void {
     $sql='SELECT p.*,r.id,r.received_at,r.project_name,r.client_name,r.project_type FROM projects p JOIN requests r ON r.id=p.request_id WHERE 1=1';
     $params=[];
     if($status) { $sql.=' AND p.status=?'; $params[]=$status; }
-    if($q) { $sql.=" AND (r.project_name LIKE ? OR r.client_name LIKE ? OR CONCAT('PSA-',YEAR(r.received_at),'-',LPAD(r.id,GREATEST(4,LENGTH(r.id)),'0')) LIKE ?)"; $params=[...$params,...array_fill(0,3,'%'.$q.'%')]; }
+    if($q) { $sql.=" AND (r.project_name LIKE ? OR r.client_name LIKE ? OR CONCAT('CRF-',YEAR(r.received_at),'-',LPAD(r.id,GREATEST(4,LENGTH(r.id)),'0')) LIKE ?)"; $params=[...$params,...array_fill(0,3,'%'.$q.'%')]; }
     $list=rows($sql.' ORDER BY p.started_on DESC,p.request_id DESC LIMIT 200',$params);
     admin_title('Operations / Tracking','Pool projects');
     ?>

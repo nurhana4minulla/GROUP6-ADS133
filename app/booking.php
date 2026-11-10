@@ -75,7 +75,7 @@ function request_list(array $filter): array {
         LEFT JOIN meetings m ON m.request_id=r.id LEFT JOIN site_visits v ON v.request_id=r.id LEFT JOIN projects p ON p.request_id=r.id WHERE 1=1';
     $params = [];
     if ($q = field($filter,'q',100)) {
-        $sql .= " AND (CONCAT('PSA-',YEAR(r.received_at),'-',LPAD(r.id,GREATEST(4,LENGTH(r.id)),'0')) LIKE ? OR r.client_name LIKE ?)";
+        $sql .= " AND (CONCAT('CRF-',YEAR(r.received_at),'-',LPAD(r.id,GREATEST(4,LENGTH(r.id)),'0')) LIKE ? OR r.client_name LIKE ?)";
         $params[] = '%'.$q.'%'; $params[] = '%'.$q.'%';
     }
     if ($date = date_input($filter,'date',false,false)) { $sql .= ' AND r.received_at>=? AND r.received_at<DATE_ADD(?,INTERVAL 1 DAY)'; array_push($params,$date,$date); }
